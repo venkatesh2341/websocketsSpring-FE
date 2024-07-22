@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <!-- <button onclick="connect()">Connect</button> -->
+    <button onclick="disconnect()">Disconnect</button>
+    <input type="text" id="name">
+    <button onclick="submit()">Submit</button>
+    <ul id="ul">
+    </ul>
+    <script>
+        var stompClient= null;
+
+        document.addEventListener("DOMContentLoaded",()=>{
+            connect();
+        })
+
+        function disconnect(){
+            if (stompClient !== null) {
+                stompClient.disconnect(function() {
+                    console.log('Disconnected');
+                });
+                stompClient = null;
+            }
+        }
+        function connect(){
+            const socket= new SockJS("http://localhost:8080/ws");
+            stompClient = Stomp.over(socket);
+            stompClient.connect({},()=>{
+                console.log("Connected...")
+                stompClient.subscribe("/topic/ping",(message)=>{
+                    console.log("received a message from server", message.data);
+                })
+                stompClient.subscribe("/topic/greeting",(message)=>{
+                    console.log("received a message from server", message.data);
+                    const li= document.createElement("li");
+                    li.textContent = message.body;
+                    document.getElementById("ul").append(li);
+                })
+            });
+        }
+
+        function submit(){
+            const val = document.getElementById("name").value;
+            stompClient.send("/app/ping",{}, JSON.stringify({data: val}))
+
+        }
+    </script>
+</body>
+</html>
