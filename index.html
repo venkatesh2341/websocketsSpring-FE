@@ -9,9 +9,14 @@
 </head>
 <body>
     <!-- <button onclick="connect()">Connect</button> -->
-    <button onclick="disconnect()">Disconnect</button>
-    <input type="text" id="name">
-    <button onclick="submit()">Submit</button>
+    <!-- <button onclick="disconnect()">Disconnect</button> -->
+    <!-- <input type="text" id="name"> -->
+    <!-- <button onclick="submit()">Submit</button> -->
+
+    <input type="text" id="name" placeholder="Enter name">
+    <input type="text" id="message" placeholder="Enter message">
+    <button onclick="sendMessage()">Send</button>
+
     <ul id="ul">
     </ul>
     <script>
@@ -37,10 +42,18 @@
                 stompClient.subscribe("/topic/ping",(message)=>{
                     console.log("received a message from server", message.data);
                 })
-                stompClient.subscribe("/topic/greeting",(message)=>{
-                    console.log("received a message from server", message.data);
+                // stompClient.subscribe("/topic/greeting",(message)=>{
+                //     console.log("received a message from server", message.data);
+                //     const li= document.createElement("li");
+                //     li.textContent = message.body;
+                //     document.getElementById("ul").append(li);
+                // })
+
+                stompClient.subscribe("/topic/chat",(message)=>{
+                   
+                    const msg= JSON.parse(message.body)
                     const li= document.createElement("li");
-                    li.textContent = message.body;
+                    li.textContent = `${msg.name} : ${msg.timestamp} - ${msg.message}`
                     document.getElementById("ul").append(li);
                 })
             });
@@ -51,6 +64,14 @@
             stompClient.send("/app/ping",{}, JSON.stringify({data: val}))
 
         }
+
+        function sendMessage(){
+            const name=document.getElementById("name").value;
+            const message =document.getElementById("message").value;
+            document.getElementById("message").value= '';
+            stompClient.send("/app/chat",{}, JSON.stringify({name: name , message:message}));
+        }
+
     </script>
 </body>
 </html>
